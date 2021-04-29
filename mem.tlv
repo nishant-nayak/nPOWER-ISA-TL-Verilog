@@ -9,16 +9,16 @@
    @_stage
       \SV_plus
          // The program in an instruction memory.
-         parameter N = 10;
-         logic [0:31] instrs [0:N-1];
+         parameter N = 1;
+         logic [31:0] instrs [0:N-1];
          // RISC-V has an inline assembler which automatically fills this SV array. For POWER, you can do this manually by changing the assignment below. Note that it is not mandatory to split instruction bitfields like the example below (you can write 32'b00000000000100110011 instead of {7'b0000000, 5'd0, 5'd0, 3'b000, 5'd10, 7'b0110011} if you prefer.
-         assign instrs = {
-            {7'b0000000, 5'd0, 5'd0, 3'b000, 5'd10, 7'b0110011}, {7'b0000000, 5'd0, 5'd10, 3'b000, 5'd14, 7'b0110011}, {12'b1010, 5'd10, 3'b000, 5'd12, 7'b0010011}, {7'b0000000, 5'd0, 5'd10, 3'b000, 5'd13, 7'b0110011}, {7'b0000000, 5'd14, 5'd13, 3'b000, 5'd14, 7'b0110011}, {12'b1, 5'd13, 3'b000, 5'd13, 7'b0010011}, {1'b1, 6'b111111, 5'd12, 5'd13, 3'b100, 4'b1100, 1'b1, 7'b1100011}, {7'b0000000, 5'd0, 5'd14, 3'b000, 5'd10, 7'b0110011}, {7'b0000000, 5'd10, 5'd0, 3'b010, 5'b00100, 7'b0100011}, {12'b100, 5'd0, 3'b010, 5'd15, 7'b0000011}
+         assign instrs = '{
+            32'h02006338
          };
       /imem[N-1:0]
-         $ins[0:31] = *instrs\[#imem\];
+         $ins[31:0] = *instrs\[#imem\];
       ?$imem_rd_en
-         $instr[0:31] = /imem[$imem_rd_addr]$ins;
+         $imem_rd_data[31:0] = /imem[$imem_rd_addr]$ins;
        
 // This is not exactly a module in Verilog sense but just a macro definition which does text replacement based on where you declare m4+rf. Refer to the edX course for usage of the rf and dmem macros.
 // Register File
