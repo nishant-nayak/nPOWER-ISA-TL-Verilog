@@ -15,8 +15,7 @@
    // Modules imported for register file, data memory and instruction memory
    m4_include_lib(['https://raw.githubusercontent.com/stevehoover/warp-v_includes/1d1023ccf8e7b0a8cf8e8fc4f0a823ebb61008e3/risc-v_defs.tlv'])
    //m4_include_lib(['https://raw.githubusercontent.com/stevehoover/LF-Building-a-RISC-V-CPU-Core/main/lib/risc-v_shell_lib.tlv'])
-   m4_include_lib(['https://raw.githubusercontent.com/addhyanmalhotra/nPOWER-ISA-TL-Verilog/master/mem.tlv?token=ANLMHETVEUDGJTKI4MPTDTDASIEM2'])
-   // m4_include_lib(['https://gist.githubusercontent.com/shivampotdar/4513b1659da026a9da2e8a00613b065c/raw/90ff045ffb6e2194ab351935525165aacb8cda90/tlv_memories.tlv'])
+   m4_include_lib(['https://raw.githubusercontent.com/nishant-nayak/nPOWER-ISA-TL-Verilog/master/mem.tlv?token=AP4UFGKZ6KNPWH4EWNDH5BDASPJ7I'])
 \SV
    // Top level module instantiation
    m4_makerchip_module   // (Expanded in Nav-TLV pane.)
@@ -27,15 +26,15 @@
          $reset = *reset;
          // Program Counter
          // TO-DO Add branch logic
-         $next_pc[31:0] = $pc + 4;
-         $pc[31:0] = >>1$next_pc;
+         $next_pc[63:0] = $imem_rd_addr + 4;
+         $imem_rd_addr[63:0] = >>1$next_pc;
+         $imem_rd_en = 1;
          // Instruction Fetch
          // add r6, r1, r2 => final value in r6 should be 3
-         $instr[0:31] = {6'd31, 5'd6, 5'd1, 5'd2, 10'd266, 1'b0} ;
+         // $instr[0:31] = {6'd31, 5'd6, 5'd1, 5'd2, 10'd266, 1'b0} ;
 
       @1
          // Instruction Decode
-         
          // Primary OP-Code
          $po[5:0] = $instr[0:5];
          
@@ -146,6 +145,9 @@
    //$result[63:0] = 64'b1;
    *failed = 1'b0; //*cyc_cnt > 70; // To change to MAX_CYC_CNT
    *passed = /xreg[6]$value == 3;
+   
+   |cpu
+      m4+imem(@0)
    
    m4+rf(32, 64, |cpu>>0$reset, (|cpu>>1$rd >=0 && |cpu>>1$rd < 32) ? |cpu>>1$rs_rt_valid : 1'b0, |cpu>>1$rd, |cpu>>1$is_ld ? /top>>0$ld_data : |cpu>>2$result, |cpu>>1$ra_valid, |cpu>>1$rs1, $src1_value, |cpu>>1$rb_valid, |cpu>>1$rb, $src2_value)
    m4+dmem(32, 64, |cpu>>0$reset, |cpu>>2$result[6:2], |cpu>>1$is_std, $src2_value, |cpu>>1$is_ld, $ld_data)
