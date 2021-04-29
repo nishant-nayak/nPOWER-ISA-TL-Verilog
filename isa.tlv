@@ -1,6 +1,6 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
-   //////////////////////////////////////////////////////////////////////////////////////////////
+   //////////////////////////////////////////////////////////////////////////////////////////
    //
    // Create Date : 17:15:26 24/04/2021
    // Team Members: Nishant N Nayak, Shreya Shaji Namath, Addhyan Malhotra, Aditya Santhosh
@@ -10,16 +10,16 @@
    // Description : nPOWER ISA is a (very small) subset of the POWER ISA v3.0. It is a 64bit ISA. 
    //               All registers are 64 bits (numbered 0 (MSB) to 63 (LSB)).
    //
-   //////////////////////////////////////////////////////////////////////////////////////////////
+   //////////////////////////////////////////////////////////////////////////////////////////
 
    // Modules imported for register file, data memory and instruction memory
    m4_include_lib(['https://raw.githubusercontent.com/stevehoover/warp-v_includes/1d1023ccf8e7b0a8cf8e8fc4f0a823ebb61008e3/risc-v_defs.tlv'])
    //m4_include_lib(['https://raw.githubusercontent.com/stevehoover/LF-Building-a-RISC-V-CPU-Core/main/lib/risc-v_shell_lib.tlv'])
-   m4_include_lib(['https://raw.githubusercontent.com/nishant-nayak/nPOWER-ISA-TL-Verilog/master/mem.tlv?token=AP4UFGKZ6KNPWH4EWNDH5BDASPJ7I'])
+   m4_include_lib(['https://gist.githubusercontent.com/nishant-nayak/6ce44fe38515c41717eff1b4fd9ce589/raw/022ca8ea3d538b5904d0a5fbd9167bf3ce897038/mem.tlv'])
 \SV
    // Top level module instantiation
-   m4_makerchip_module   // (Expanded in Nav-TLV pane.)
-  /* verilator lint_off LITENDIAN */
+   m4_makerchip_module
+   /* verilator lint_off LITENDIAN */
 \TLV
    |cpu
       @0
@@ -35,11 +35,20 @@
 
       @1
          // Instruction Decode
-         // Primary OP-Code
+         // Extract Primary OP-Code
          $po[5:0] = $instr[0:5];
          
          // Extract Extended OP-Code
          $xo[9:0] = $instr[21:30];
+         
+         // Extract Register Indices
+         $rs_rt[4:0] = $instr[6:10];
+         $ra[4:0] = $instr[11:15];
+         $rb[4:0] = $instr[16:20];
+         
+         // Extract Immediate Fields
+         $si[63:0] = { {48{$instr[16]}}, $instr[16:31] };
+         $ui[63:0] = { 48'b0, $instr[16:31] };
          
          // Determine instruction Type
          $is_d_instr = $po == 6'b00111x ||
@@ -51,15 +60,6 @@
          $is_i_instr  = ($po == 6'b010010);
          $is_x_instr  = ($po == 31) && ($xo != 266 && $xo != 40);
          $is_xo_instr = ($po == 31) && ($xo == 266 || $xo == 40);
-         
-         // Extract Register Indicies
-         $rs_rt[4:0] = $instr[6:10];
-         $ra[4:0] = $instr[11:15];
-         $rb[4:0] = $instr[16:20];
-         
-         // Extract Immediate Fields
-         $si[63:0] = { {48{$instr[16]}}, $instr[16:31] };
-         $ui[63:0] = { 48'b0, $instr[16:31] };
          
          // Check whether the given fields are valid 
          $rs_rt_valid = !($is_i_instr);
@@ -142,8 +142,7 @@
    */
    `BOGUS_USE(|cpu>>1$is_b |cpu>>1$xo_valid);
    // Assert these to end simulation (before Makerchip cycle limit).
-   //$result[63:0] = 64'b1;
-   *failed = 1'b0; //*cyc_cnt > 70; // To change to MAX_CYC_CNT
+   *failed = 1'b0;
    *passed = /xreg[6]$value == 3;
    
    |cpu
