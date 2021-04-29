@@ -14,7 +14,7 @@
 
    // Modules imported for register file, data memory and instruction memory
    m4_include_lib(['https://raw.githubusercontent.com/stevehoover/warp-v_includes/1d1023ccf8e7b0a8cf8e8fc4f0a823ebb61008e3/risc-v_defs.tlv'])
-   m4_include_lib(['https://gist.githubusercontent.com/nishant-nayak/6ce44fe38515c41717eff1b4fd9ce589/raw/0f6b9e76f440a7fb0bd50d9b286b3336966f935a/mem.tlv'])
+   m4_include_lib(['https://raw.githubusercontent.com/nishant-nayak/nPOWER-ISA-TL-Verilog/master/mem.tlv?token=AP4UFGIILY6XN7FS3VLQEXDASQSTM'])
 \SV
    // Top level module instantiation
    m4_makerchip_module
