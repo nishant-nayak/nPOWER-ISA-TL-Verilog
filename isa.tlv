@@ -14,7 +14,7 @@
 
    // Modules imported for register file, data memory and instruction memory
    m4_include_lib(['https://raw.githubusercontent.com/stevehoover/warp-v_includes/1d1023ccf8e7b0a8cf8e8fc4f0a823ebb61008e3/risc-v_defs.tlv'])
-   m4_include_lib(['https://raw.githubusercontent.com/nishant-nayak/nPOWER-ISA-TL-Verilog/master/mem.tlv?token=AP4UFGIILY6XN7FS3VLQEXDASQSTM'])
+   m4_include_lib(['https://raw.githubusercontent.com/nishant-nayak/nPOWER-ISA-TL-Verilog/test-1/mem.tlv?token=ANLMHESZJYH2C5Y2GN2EKFTASTOHC'])
 \SV
    // Top level module instantiation
    m4_makerchip_module
@@ -24,12 +24,19 @@
          $reset = *reset;
          // Program Counter
          // TO-DO Add branch logic
-         $next_pc[63:0] = $imem_rd_addr + 4;
-         $imem_rd_addr[63:0] = >>1$next_pc;
          $imem_rd_en = 1;
+         //CIA IMPLEMENTATION 
+         $pc[63:0] = >>1$reset ? 32'b0 :
+                     >>2$is_b ? >>2$br_tgt :
+                     >>1$pc4;
+         $imem_rd_addr[63:0] = $pc;
+         
          // Instruction Fetch
          $instr[31:0] = {$imem_rd_data[7:0], $imem_rd_data[15:8], $imem_rd_data[23:16], $imem_rd_data[31:24]};
       @1
+         // Stage 1 Increment PC+4 (NIA)
+         $pc4[63:0] = $pc + 64'd4;
+         
          // Instruction Decode
          // Extract Primary OP-Code
          $po[5:0] = $instr[31:26];
@@ -45,6 +52,7 @@
          // Extract Immediate Fields
          $si[63:0] = { {48{$instr[15]}}, $instr[15:0] };
          $ui[63:0] = { 48'b0, $instr[15:0] };
+         $li[63:0] = { {40{$instr[25]}}, $instr[25:2], 2'b00 };
          
          // Determine instruction Type
          $is_d_instr = $po == 6'b00111x ||
@@ -118,25 +126,12 @@
                         $is_xori  ? /top>>0$src1_value ^ $ui :
                         $is_ld    ? (($rs1 == 0) ? 0 : /top>>0$src1_value) + { $si[62:0], 1'b0 } :
                         $is_std   ? (($rs1 == 0) ? 0 : /top>>0$src1_value) + { $si[62:0], 1'b0 } :
-                        //$is_b     = $po == 18;
                         //$is_cmp   = $po == 31 && $xo == 0;
                         //$is_cmpi  = $po == 11;
                         32'b0;
-   /*
-   // Branch logic
-   $taken_br = $is_beq ? $src1_value == $src2_value :
-               $is_bne ? $src1_value != $src2_value :
-               $is_blt ? ($src1_value < $src2_value) ^
-                         ($src1_value[31] != $src2_value[31]) :
-               $is_bge ? ($src1_value >= $src2_value) ^
-                         ($src1_value[31] != $src2_value[31]) :
-               $is_bltu ? $src1_value  < $src2_value :
-               $is_bgeu ? $src1_value >= $src2_value :
-               1'b0;
-   $br_tgt_br[31:0] = $pc + $imm;
-   $jalr_tgt_pc[31:0] = $src1_value + $imm;
-   */
-   `BOGUS_USE(|cpu>>1$is_b |cpu>>1$xo_valid);
+         //
+         $br_tgt[63:0] =  $is_b && $instr[1] ? $li : $li+$pc;
+   `BOGUS_USE(|cpu>>1$xo_valid);
    // Assert these to end simulation (before Makerchip cycle limit).
    *failed = 1'b0;
    *passed = *cyc_cnt > 50 || /xreg[6]$value == 3;
