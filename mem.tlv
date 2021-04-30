@@ -13,7 +13,7 @@
          logic [31:0] instrs [0:N-1];
          // RISC-V has an inline assembler which automatically fills this SV array. For POWER, you can do this manually by changing the assignment below. Note that it is not mandatory to split instruction bitfields like the example below (you can write 32'b00000000000100110011 instead of {7'b0000000, 5'd0, 5'd0, 3'b000, 5'd10, 7'b0110011} if you prefer.
          assign instrs = '{
-            32'h02006338,32'h02006337
+            32'h02006338,32'h02006370
          };
       /imem[N-1:0]
          $ins[31:0] = *instrs\[#imem\];
